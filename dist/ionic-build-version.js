@@ -13,6 +13,7 @@ var _xml2js = require('xml2js');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var chalk = require('chalk');
 var ME = 'ionic-build-version';
 var DefaultConfigPath = './config.xml';
 var DefaultTag = '@NPM_VERSION@';
@@ -37,32 +38,32 @@ var buildNumber = +cli.flags.buildNumber || null;
 var tag = cli.flags.tag || DefaultTag;
 
 if (typeof configPath !== 'string') {
-  throw new TypeError('"configPath" argument must be a string');
+  console.error(chalk.bold.red(new TypeError('"configPath" argument must be a string')));
 }
 
 if (version && typeof version !== 'string') {
-  throw new TypeError('"version" argument must be a string');
+  console.error(chalk.bold.red(new TypeError('"version" argument must be a string')));
 }
 
 if (buildNumber && typeof buildNumber !== 'number') {
-  throw new TypeError('"buildNumber" argument must be an integer');
+  console.error(chalk.bold.red(new TypeError('"buildNumber" argument must be an integer')));
 }
 
 ionicBuildVersion(configPath, version, buildNumber, tag, cli.input);
 
-function setXmlVersion(configPath, version, buildNumber) {
+function setXmlVersion(configPath, version, buildNumber, complete) {
   var xmlParser = new _xml2js.Parser();
   var xmlBuilder = new _xml2js.Builder();
 
   _fs2.default.readFile(configPath, 'UTF-8', function (error, data) {
     if (error) {
-      throw error;
+      console.error(chalk.bold.red(error));
       return;
     }
 
     xmlParser.parseString(data, function (error, xml) {
       if (error) {
-        throw error;
+        console.error(chalk.bold.red(error));
         return;
       }
 
@@ -83,52 +84,40 @@ function setXmlVersion(configPath, version, buildNumber) {
       }
 
       var newData = xmlBuilder.buildObject(xml);
-      _fs2.default.writeFile(configPath, newData, { encoding: 'UTF-8' });
+      _fs2.default.writeFile(configPath, newData, { encoding: 'UTF-8' }, function () {
+        return complete();
+      });
     });
   });
 }
 
-function setFileVersion(filePath, version, tag) {
+function setFileVersion(filePath, version, tag, complete) {
   _fs2.default.readFile(filePath, 'UTF-8', function (error, data) {
+    console.log('Set tag ' + tag + ' for ' + filePath + ' to ' + version);
     if (error) {
-      throw error;
+      console.error(chalk.bold.red(error));
       return;
     }
-    _fs2.default.writeFile(filePath, data.toString().replace(tag, version), { encoding: 'UTF-8' });
+    _fs2.default.writeFile(filePath, data.toString().replace(tag, version), { encoding: 'UTF-8' }, function () {
+      return complete();
+    });
   });
 }
 
 function ionicBuildVersion(configPath, version, buildNumber, tag, files) {
   function doUpdate() {
     console.log('Set version for ' + configPath + ' to ' + version);
-    setXmlVersion(configPath, version, buildNumber);
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = files[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var filePath = _step.value;
-
-        console.log('Set version for ' + filePath + ' to ' + version);
-        setFileVersion(filePath, version, tag);
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
+    setXmlVersion(configPath, version, buildNumber, function () {
+      var fileFunc = function fileFunc() {
+        var file = files.pop();
+        if (file) {
+          setFileVersion(file, version, tag, fileFunc);
+        } else {
+          console.log(chalk.bold.green('Version set finished'));
         }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-
-    console.log('Version set done');
+      };
+      fileFunc();
+    });
   }
 
   if (version) {
@@ -136,7 +125,7 @@ function ionicBuildVersion(configPath, version, buildNumber, tag, files) {
   } else {
     _fs2.default.readFile('./package.json', 'UTF-8', function (error, data) {
       if (error) {
-        throw error;
+        console.error(chalk.bold.red(error));
         return;
       }
 

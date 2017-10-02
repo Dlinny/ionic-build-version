@@ -4,6 +4,7 @@ import meow from 'meow'
 import fs from 'fs'
 import { Parser, Builder } from 'xml2js'
 
+const chalk = require('chalk');
 const ME = 'ionic-build-version'
 const DefaultConfigPath = './config.xml'
 const DefaultTag = '@NPM_VERSION@'
@@ -44,32 +45,32 @@ let buildNumber = +cli.flags.buildNumber || null
 let tag = cli.flags.tag || DefaultTag
 
 if (typeof configPath !== 'string') {
-  throw new TypeError('"configPath" argument must be a string')
+  console.error(chalk.bold.red(new TypeError('"configPath" argument must be a string')))
 }
 
 if (version && typeof version !== 'string') {
-  throw new TypeError('"version" argument must be a string')
+  console.error(chalk.bold.red(new TypeError('"version" argument must be a string')))
 }
 
 if (buildNumber && typeof buildNumber !== 'number') {
-  throw new TypeError('"buildNumber" argument must be an integer')
+  console.error(chalk.bold.red(new TypeError('"buildNumber" argument must be an integer')))
 }
 
 ionicBuildVersion(configPath, version, buildNumber, tag, cli.input)
 
-function setXmlVersion(configPath, version, buildNumber) {
+function setXmlVersion(configPath, version, buildNumber, complete) {
   const xmlParser = new Parser()
   const xmlBuilder = new Builder()  
 
   fs.readFile(configPath, 'UTF-8', (error, data) => {
     if (error) {
-      throw error;
+      console.error(chalk.bold.red(error));
       return
     }
 
     xmlParser.parseString(data, (error, xml) => {
       if (error) {
-        throw error
+        console.error(chalk.bold.red(error))
         return
       }
 
@@ -90,30 +91,36 @@ function setXmlVersion(configPath, version, buildNumber) {
       }
 
       let newData = xmlBuilder.buildObject(xml)
-      fs.writeFile(configPath, newData, { encoding: 'UTF-8' })
+      fs.writeFile(configPath, newData, { encoding: 'UTF-8' },()=>complete())
     })
   })
 }
 
-function setFileVersion(filePath, version, tag) {
+function setFileVersion(filePath, version, tag, complete) {
   fs.readFile(filePath, 'UTF-8', (error, data) => {
+    console.log('Set tag ' + tag + ' for '+ filePath + ' to ' + version);
     if (error) {
-      throw error;
+      console.error(chalk.bold.red(error))
       return
     }
-    fs.writeFile(filePath, data.toString().replace(tag, version), { encoding: 'UTF-8' })
+    fs.writeFile(filePath, data.toString().replace(tag, version), { encoding: 'UTF-8' },()=>complete())
   })
 }
 
 function ionicBuildVersion(configPath, version, buildNumber, tag, files) {
   function doUpdate() {
     console.log('Set version for '+configPath+' to '+version);
-    setXmlVersion(configPath, version, buildNumber);
-    for(let filePath of files) {
-      console.log('Set version for '+filePath+' to '+version);
-      setFileVersion(filePath, version, tag)
-    }
-    console.log('Version set done')
+    setXmlVersion(configPath, version, buildNumber,()=>{
+      let fileFunc = ()=>{
+        let file = files.pop();
+        if(file) {
+          setFileVersion(file, version, tag, fileFunc)
+        } else {
+          console.log(chalk.bold.green('Version set finished'))
+        }
+      };
+      fileFunc()
+    });
   }
 
   if (version) {
@@ -121,7 +128,7 @@ function ionicBuildVersion(configPath, version, buildNumber, tag, files) {
   } else {
     fs.readFile('./package.json', 'UTF-8', (error, data) => {
       if (error) {
-        throw error
+        console.error(chalk.bold.red(error))
         return
       }
 

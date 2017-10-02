@@ -9,9 +9,10 @@
     "ionic-build-version": "dist/ionic-build-version.js"
   },
   "dependencies": {
+    "chalk": "^2.1.0",
+    "meow": "^3.7.0",
     "read-pkg": "^2.0.0",
-    "xml2js": "^0.4.19",
-    "meow": "^3.7.0"
+    "xml2js": "^0.4.19"
   },
   "description": "CLI for setting the version in Apache Cordova config.xml",
   "devDependencies": {
@@ -39,5 +40,5 @@
   "scripts": {
     "build": "babel --out-dir dist src"
   },
-  "version": "0.0.1"
+  "version": "0.0.2"
 }
