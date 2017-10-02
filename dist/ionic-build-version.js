@@ -98,8 +98,13 @@ function setFileVersion(filePath, version, tag, complete) {
       console.error(chalk.bold.red(error));
       return;
     }
-    _fs2.default.writeFile(filePath, data.toString().replace(tag, version), { encoding: 'UTF-8' }, function () {
-      return complete();
+    var replacements = 0;
+    _fs2.default.writeFile(filePath, data.toString().replace(tag, function (input) {
+      replacements++;
+      return version;
+    }), { encoding: 'UTF-8' }, function () {
+      console.log('Made ' + replacements.toString() + ' replacements');
+      complete();
     });
   });
 }

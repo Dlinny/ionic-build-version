@@ -40,5 +40,5 @@
   "scripts": {
     "build": "babel --out-dir dist src"
   },
-  "version": "0.0.2"
+  "version": "0.0.3"
 }

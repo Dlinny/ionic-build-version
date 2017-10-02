@@ -103,7 +103,14 @@ function setFileVersion(filePath, version, tag, complete) {
       console.error(chalk.bold.red(error))
       return
     }
-    fs.writeFile(filePath, data.toString().replace(tag, version), { encoding: 'UTF-8' },()=>complete())
+    let replacements = 0;
+    fs.writeFile(filePath, data.toString().replace(tag, (input)=>{
+      replacements++;
+      return version;
+    }), { encoding: 'UTF-8' },()=>{
+      console.log('Made '+replacements.toString()+' replacements');
+      complete();
+    })
   })
 }
 
