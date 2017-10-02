@@ -1,0 +1,43 @@
+{
+  "author": "Dlinny",
+  "babel": {
+    "presets": [
+      "env"
+    ]
+  },
+  "bin": {
+    "ionic-build-version": "dist/ionic-build-version.js"
+  },
+  "dependencies": {
+    "read-pkg": "^2.0.0",
+    "xml2js": "^0.4.19",
+    "meow": "^3.7.0"
+  },
+  "description": "CLI for setting the version in Apache Cordova config.xml",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-register": "^6.26.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "homepage": "https://github.com/Dlinny/ionic-build-version#readme",
+  "keywords": [
+    "apache",
+    "cordova",
+    "version"
+  ],
+  "license": "ISC",
+  "main": "dist/ionic-build-version.js",
+  "name": "ionic-build-version",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dlinny/ionic-build-version.git"
+  },
+  "scripts": {
+    "build": "babel --out-dir dist src"
+  },
+  "version": "0.0.1"
+}
